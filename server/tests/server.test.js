@@ -5,12 +5,19 @@ const request= require('supertest');
 const {app}= require('./../server');
 const {Todo}= require('./../models/todo');
 
+const todos= [{
+  text: 'First test todo',
+  text: 'Second test todo'
+}];
+
 //test the todos collection to see if there's any todos in there before we start the code
 //runs before each test case
 //only proceeds to the test case once done() is called
 beforeEach((done) => {
   //remove all todos
-  Todo.remove({}).then(() => done());
+  Todo.remove({}).then(() => {
+    Todo.insertMany(todos);
+  }).then(() => done());
 });
 
 
@@ -30,7 +37,7 @@ describe('POST /todos', () => {
           return done(err);
         }
 
-        Todo.find().then((todos) => {
+        Todo.find({text}).then((todos) => {
           expect(todos.length).toBe(1);
           expect(todos[0].text).toBe(text);
           done();
@@ -53,10 +60,23 @@ describe('POST /todos', () => {
       //if there are no errors, fetch all todos of the collection
       Todo.find().then((todos) => {
         //let's make sure that there are no todos
-        expect(todos.length).toBe(0);
+        expect(todos.length).toBe(1);
         //exeunt
         done();
       }).catch((e) => done(e));
     });
+  });
+});
+
+
+describe('GET /todos', () => {
+  it('should get all todos', (done) => {
+    request(app)
+      .get('/todos')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todos.length).toBe(1);
+      })
+      .end(done);
   });
 });
