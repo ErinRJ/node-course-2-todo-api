@@ -1,7 +1,7 @@
 //library imports
-var express= require('express');
-var bodyParser= require('body-parser');
-
+const express= require('express');
+const bodyParser= require('body-parser');
+const _ = require('lodash');
 //make an object id
 var {ObjectID}= require('mongodb');
 
@@ -85,6 +85,34 @@ app.get('/todos/:id', (req, res) => {
   });
 });
 
+//patches are used to alter the todo information after it's already been set
+app.patch('/todos/:id', (req, res) => {
+  var id = req.params.id;
+  //body will store the updates made by the user
+  //body will contain a subset of the things given by the user
+  var body = _.pick(req.body, ['text', 'completed']);
+
+  if(!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+//check if the body is completed
+  if (_.isBoolean(body.completed) && body.completed) {
+    body.completedAt = new Date().getTime();
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    if(!todo) {
+      return res.status(404).send();
+    }
+
+    res.send({todo});
+  }).catch((e) => {
+    res.status(400).send();
+  })
+});
 
 app.listen(port, () => {
   console.log('Started on port ' + port);
