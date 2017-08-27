@@ -54,7 +54,7 @@ app.delete('/todos/:id',(req, res) => {
       return res.status(404).send();
     }
     //if there was no doc by that id
-    res.send(todo);
+    res.send({todo});
   }).catch((e) => {
     return res.status(400).send();
   });
