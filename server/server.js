@@ -13,13 +13,12 @@ var {ObjectID}= require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
-
+var {authenticate} = require('./middleware/authenticate');
 
 var app= express();
 const port= process.env.PORT || 3000;
 
 
-//deal with the middleware
 app.use(bodyParser.json());
 
 app.post('/todos', (req, res) => {
@@ -118,10 +117,6 @@ app.patch('/todos/:id', (req, res) => {
   })
 });
 
-app.listen(port, () => {
-  console.log('Started on port ' + port);
-});
-
 //POST/users
 app.post('/users', (req,res) => {
   //gather the email and password information from the user
@@ -138,5 +133,15 @@ app.post('/users', (req,res) => {
       res.status(400).send(e);
   })
 });
+
+
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
+});
+
+app.listen(port, () => {
+  console.log('Started on port ' + port);
+});
+
 
 module.exports = {app};
