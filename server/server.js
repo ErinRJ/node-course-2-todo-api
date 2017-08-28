@@ -122,6 +122,21 @@ app.listen(port, () => {
   console.log('Started on port ' + port);
 });
 
-
+//POST/users
+app.post('/users', (req,res) => {
+  //gather the email and password information from the user
+  var body = _.pick(req.body, ['email', 'password']);
+  //create a new instance of the model
+  var user= new User(body);
+  //if things go well, save the doc, if not send back an error
+    user.save().then(() => {
+      return user.generateAuthToken();
+    }).then((token) => {
+      //x- means custom header
+      res.header('x-auth', token).send(user);
+    }).catch((e) => {
+      res.status(400).send(e);
+  })
+});
 
 module.exports = {app};
